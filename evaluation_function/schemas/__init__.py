@@ -1,7 +1,7 @@
 """
 Graph Theory Evaluation Schemas
 
-This package contains all schema definitions for the Graph Theory
+This package contains all Pydantic schema definitions for the Graph Theory
 Visualizer and Evaluator.
 
 Modules:
@@ -14,9 +14,9 @@ Modules:
 
 # Graph structures
 from .graph import (
-    NodeSchema,
-    EdgeSchema,
-    GraphSchema,
+    Node,
+    Edge,
+    Graph,
     EXAMPLE_UNDIRECTED_GRAPH,
     EXAMPLE_DIRECTED_GRAPH,
     EXAMPLE_BIPARTITE_GRAPH,
@@ -26,16 +26,18 @@ from .graph import (
 # Evaluation types
 from .evaluation_types import (
     EvaluationType,
-    CoreEvaluationType,
-    PathEvaluationType,
-    CycleEvaluationType,
-    TreeEvaluationType,
-    ColoringEvaluationType,
-    FlowEvaluationType,
-    ComponentEvaluationType,
-    StructureEvaluationType,
-    OrderingEvaluationType,
-    SpecialGraphEvaluationType,
+    EvaluationCategory,
+    CoreEvaluation,
+    PathEvaluation,
+    CycleEvaluation,
+    TreeEvaluation,
+    ColoringEvaluation,
+    FlowEvaluation,
+    ComponentEvaluation,
+    StructureEvaluation,
+    OrderingEvaluation,
+    SpecialGraphEvaluation,
+    EvaluationTypeInfo,
     EVALUATION_TYPE_INFO,
 )
 
@@ -67,8 +69,8 @@ from .params import (
 
 # Request/Response
 from .request import (
-    ResponseSchema,
-    AnswerSchema,
+    Response,
+    Answer,
 )
 
 # Results
@@ -91,14 +93,14 @@ from .result import (
     ComputationStep,
     EvaluationDetails,
     VisualizationData,
-    ExtendedResult,
+    EvaluationResult,
 )
 
 __all__ = [
     # Graph structures
-    "NodeSchema",
-    "EdgeSchema",
-    "GraphSchema",
+    "Node",
+    "Edge",
+    "Graph",
     "EXAMPLE_UNDIRECTED_GRAPH",
     "EXAMPLE_DIRECTED_GRAPH",
     "EXAMPLE_BIPARTITE_GRAPH",
@@ -106,16 +108,18 @@ __all__ = [
     
     # Evaluation types
     "EvaluationType",
-    "CoreEvaluationType",
-    "PathEvaluationType",
-    "CycleEvaluationType",
-    "TreeEvaluationType",
-    "ColoringEvaluationType",
-    "FlowEvaluationType",
-    "ComponentEvaluationType",
-    "StructureEvaluationType",
-    "OrderingEvaluationType",
-    "SpecialGraphEvaluationType",
+    "EvaluationCategory",
+    "CoreEvaluation",
+    "PathEvaluation",
+    "CycleEvaluation",
+    "TreeEvaluation",
+    "ColoringEvaluation",
+    "FlowEvaluation",
+    "ComponentEvaluation",
+    "StructureEvaluation",
+    "OrderingEvaluation",
+    "SpecialGraphEvaluation",
+    "EvaluationTypeInfo",
     "EVALUATION_TYPE_INFO",
     
     # Parameters
@@ -143,8 +147,8 @@ __all__ = [
     "TraversalParams",
     
     # Request/Response
-    "ResponseSchema",
-    "AnswerSchema",
+    "Response",
+    "Answer",
     
     # Results
     "PathResult",
@@ -165,5 +169,5 @@ __all__ = [
     "ComputationStep",
     "EvaluationDetails",
     "VisualizationData",
-    "ExtendedResult",
+    "EvaluationResult",
 ]

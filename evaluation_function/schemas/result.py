@@ -1,262 +1,257 @@
 """
 Result Schemas
 
-Defines the schemas for evaluation results and feedback.
+Defines the schemas for evaluation results and feedback using Pydantic.
 """
 
-from typing import TypedDict, Literal
-from .graph import EdgeSchema
+from typing import Optional, Literal, Any
+from pydantic import BaseModel, Field
+
+from .graph import Edge
 
 
 # =============================================================================
 # SPECIFIC RESULT SCHEMAS
 # =============================================================================
 
-class PathResult(TypedDict, total=False):
+class PathResult(BaseModel):
     """Result details for shortest path evaluation."""
-    path: list[str]
-    distance: float
-    path_exists: bool
-    algorithm_used: str
-    all_paths: list[list[str]]  # If multiple shortest paths exist
+    path: Optional[list[str]] = Field(None, description="The shortest path")
+    distance: Optional[float] = Field(None, description="Path distance/weight")
+    path_exists: bool = Field(True, description="Whether a path exists")
+    algorithm_used: Optional[str] = Field(None, description="Algorithm used")
+    all_paths: Optional[list[list[str]]] = Field(None, description="All shortest paths if multiple exist")
 
 
-class ConnectivityResult(TypedDict, total=False):
+class ConnectivityResult(BaseModel):
     """Result details for connectivity evaluation."""
-    is_connected: bool
-    num_components: int
-    components: list[list[str]]
-    connectivity_type: str  # "connected", "strongly_connected", etc.
-    largest_component_size: int
+    is_connected: bool = Field(..., description="Whether graph is connected")
+    num_components: int = Field(1, description="Number of connected components")
+    components: Optional[list[list[str]]] = Field(None, description="The connected components")
+    connectivity_type: Optional[str] = Field(None, description="Type of connectivity checked")
+    largest_component_size: Optional[int] = Field(None, description="Size of largest component")
 
 
-class BipartiteResult(TypedDict, total=False):
+class BipartiteResult(BaseModel):
     """Result details for bipartite evaluation."""
-    is_bipartite: bool
-    partitions: list[list[str]]
-    odd_cycle: list[str]  # Proof if not bipartite
+    is_bipartite: bool = Field(..., description="Whether graph is bipartite")
+    partitions: Optional[list[list[str]]] = Field(None, description="The two partitions")
+    odd_cycle: Optional[list[str]] = Field(None, description="Proof if not bipartite (odd cycle)")
 
 
-class GraphMatchResult(TypedDict, total=False):
+class GraphMatchResult(BaseModel):
     """Result details for graph matching evaluation."""
-    is_match: bool
-    match_type: str
-    missing_nodes: list[str]
-    extra_nodes: list[str]
-    missing_edges: list[EdgeSchema]
-    extra_edges: list[EdgeSchema]
-    node_mapping: dict[str, str]  # For isomorphism
+    is_match: bool = Field(..., description="Whether graphs match")
+    match_type: Optional[str] = Field(None, description="Type of match performed")
+    missing_nodes: Optional[list[str]] = Field(None, description="Nodes missing from response")
+    extra_nodes: Optional[list[str]] = Field(None, description="Extra nodes in response")
+    missing_edges: Optional[list[Edge]] = Field(None, description="Edges missing from response")
+    extra_edges: Optional[list[Edge]] = Field(None, description="Extra edges in response")
+    node_mapping: Optional[dict[str, str]] = Field(None, description="Node mapping for isomorphism")
 
 
-class EulerianResult(TypedDict, total=False):
+class EulerianResult(BaseModel):
     """Result details for Eulerian path/circuit evaluation."""
-    exists: bool
-    path: list[str]
-    is_circuit: bool
-    odd_degree_vertices: list[str]  # Vertices with odd degree
+    exists: bool = Field(..., description="Whether Eulerian path/circuit exists")
+    path: Optional[list[str]] = Field(None, description="The Eulerian path/circuit")
+    is_circuit: bool = Field(False, description="Whether it's a circuit (closed)")
+    odd_degree_vertices: Optional[list[str]] = Field(None, description="Vertices with odd degree")
 
 
-class HamiltonianResult(TypedDict, total=False):
+class HamiltonianResult(BaseModel):
     """Result details for Hamiltonian path/circuit evaluation."""
-    exists: bool
-    path: list[str]
-    is_circuit: bool
-    timed_out: bool
+    exists: Optional[bool] = Field(None, description="Whether Hamiltonian path/circuit exists")
+    path: Optional[list[str]] = Field(None, description="The Hamiltonian path/circuit")
+    is_circuit: bool = Field(False, description="Whether it's a circuit (closed)")
+    timed_out: bool = Field(False, description="Whether computation timed out")
 
 
-class CycleResult(TypedDict, total=False):
+class CycleResult(BaseModel):
     """Result details for cycle detection evaluation."""
-    has_cycle: bool
-    cycles: list[list[str]]
-    shortest_cycle: list[str]
-    girth: int  # Length of shortest cycle
-    has_negative_cycle: bool
-    negative_cycle: list[str]
+    has_cycle: bool = Field(..., description="Whether graph contains a cycle")
+    cycles: Optional[list[list[str]]] = Field(None, description="Cycles found")
+    shortest_cycle: Optional[list[str]] = Field(None, description="The shortest cycle")
+    girth: Optional[int] = Field(None, description="Length of shortest cycle")
+    has_negative_cycle: Optional[bool] = Field(None, description="Whether negative cycle exists")
+    negative_cycle: Optional[list[str]] = Field(None, description="The negative cycle")
 
 
-class TreeResult(TypedDict, total=False):
+class TreeResult(BaseModel):
     """Result details for tree evaluations."""
-    is_tree: bool
-    is_spanning_tree: bool
-    is_mst: bool
-    total_weight: float
-    edges: list[EdgeSchema]
-    diameter: int
-    center: list[str]
-    root: str
+    is_tree: bool = Field(False, description="Whether graph is a tree")
+    is_spanning_tree: Optional[bool] = Field(None, description="Whether it's a valid spanning tree")
+    is_mst: Optional[bool] = Field(None, description="Whether it's a minimum spanning tree")
+    total_weight: Optional[float] = Field(None, description="Total edge weight")
+    edges: Optional[list[Edge]] = Field(None, description="Tree edges")
+    diameter: Optional[int] = Field(None, description="Tree diameter")
+    center: Optional[list[str]] = Field(None, description="Tree center vertex(es)")
+    root: Optional[str] = Field(None, description="Root node if rooted tree")
 
 
-class ColoringResult(TypedDict, total=False):
+class ColoringResult(BaseModel):
     """Result details for graph coloring evaluation."""
-    is_valid_coloring: bool
-    coloring: dict[str, int]
-    num_colors_used: int
-    chromatic_number: int
-    conflicts: list[tuple[str, str]]  # Edges with same-color endpoints
+    is_valid_coloring: bool = Field(..., description="Whether coloring is valid")
+    coloring: Optional[dict[str, int]] = Field(None, description="The coloring assignment")
+    num_colors_used: Optional[int] = Field(None, description="Number of colors used")
+    chromatic_number: Optional[int] = Field(None, description="Chromatic number (if computed)")
+    conflicts: Optional[list[tuple[str, str]]] = Field(None, description="Edges with same-color endpoints")
 
 
-class FlowResult(TypedDict, total=False):
+class FlowResult(BaseModel):
     """Result details for flow network evaluation."""
-    max_flow_value: float
-    flow_assignment: dict[str, float]
-    min_cut_nodes: list[str]
-    min_cut_edges: list[EdgeSchema]
-    min_cut_capacity: float
-    is_valid_flow: bool
+    max_flow_value: Optional[float] = Field(None, description="Maximum flow value")
+    flow_assignment: Optional[dict[str, float]] = Field(None, description="Flow on each edge")
+    min_cut_nodes: Optional[list[str]] = Field(None, description="Nodes on source side of min cut")
+    min_cut_edges: Optional[list[Edge]] = Field(None, description="Edges in the minimum cut")
+    min_cut_capacity: Optional[float] = Field(None, description="Total capacity of min cut")
+    is_valid_flow: Optional[bool] = Field(None, description="Whether submitted flow is valid")
 
 
-class MatchingResult(TypedDict, total=False):
+class MatchingResult(BaseModel):
     """Result details for matching evaluation."""
-    matching: list[tuple[str, str]]
-    matching_size: int
-    is_perfect: bool
-    is_maximum: bool
-    unmatched_vertices: list[str]
-    total_weight: float  # For weighted matching
+    matching: Optional[list[tuple[str, str]]] = Field(None, description="The matching edges")
+    matching_size: Optional[int] = Field(None, description="Size of matching")
+    is_perfect: Optional[bool] = Field(None, description="Whether matching is perfect")
+    is_maximum: Optional[bool] = Field(None, description="Whether matching is maximum")
+    unmatched_vertices: Optional[list[str]] = Field(None, description="Unmatched vertices")
+    total_weight: Optional[float] = Field(None, description="Total weight for weighted matching")
 
 
-class ComponentResult(TypedDict, total=False):
+class ComponentResult(BaseModel):
     """Result details for component-related evaluations."""
-    components: list[list[str]]
-    num_components: int
-    articulation_points: list[str]
-    bridges: list[EdgeSchema]
-    biconnected_components: list[list[str]]
+    components: Optional[list[list[str]]] = Field(None, description="The components")
+    num_components: int = Field(1, description="Number of components")
+    articulation_points: Optional[list[str]] = Field(None, description="Articulation points")
+    bridges: Optional[list[Edge]] = Field(None, description="Bridge edges")
+    biconnected_components: Optional[list[list[str]]] = Field(None, description="Biconnected components")
 
 
-class StructureResult(TypedDict, total=False):
+class StructureResult(BaseModel):
     """Result details for graph structure evaluations."""
-    degree_sequence: list[int]
-    is_regular: bool
-    regularity: int
-    is_planar: bool
-    is_complete: bool
-    clique: list[str]
-    clique_size: int
-    independent_set: list[str]
-    independent_set_size: int
-    vertex_cover: list[str]
-    vertex_cover_size: int
+    degree_sequence: Optional[list[int]] = Field(None, description="Degree sequence")
+    is_regular: Optional[bool] = Field(None, description="Whether graph is regular")
+    regularity: Optional[int] = Field(None, description="k if k-regular")
+    is_planar: Optional[bool] = Field(None, description="Whether graph is planar")
+    is_complete: Optional[bool] = Field(None, description="Whether graph is complete")
+    clique: Optional[list[str]] = Field(None, description="Maximum clique")
+    clique_size: Optional[int] = Field(None, description="Size of maximum clique")
+    independent_set: Optional[list[str]] = Field(None, description="Maximum independent set")
+    independent_set_size: Optional[int] = Field(None, description="Size of maximum independent set")
+    vertex_cover: Optional[list[str]] = Field(None, description="Minimum vertex cover")
+    vertex_cover_size: Optional[int] = Field(None, description="Size of minimum vertex cover")
 
 
-class OrderingResult(TypedDict, total=False):
+class OrderingResult(BaseModel):
     """Result details for ordering evaluations."""
-    is_valid_order: bool
-    order: list[str]
-    all_valid_orderings: list[list[str]]
-    traversal_tree: dict[str, list[str]]  # parent -> children
+    is_valid_order: bool = Field(..., description="Whether the order is valid")
+    order: Optional[list[str]] = Field(None, description="A valid ordering")
+    all_valid_orderings: Optional[list[list[str]]] = Field(None, description="All valid orderings")
+    traversal_tree: Optional[dict[str, list[str]]] = Field(None, description="Traversal tree structure")
 
 
 # =============================================================================
 # FEEDBACK SCHEMA
 # =============================================================================
 
-class FeedbackItem(TypedDict, total=False):
+class FeedbackItem(BaseModel):
     """A single feedback item."""
-    type: Literal["success", "error", "warning", "info", "hint"]
-    message: str
-    details: str
-    location: str  # Reference to specific node/edge if applicable
+    type: Literal["success", "error", "warning", "info", "hint"] = Field(
+        ..., description="Type of feedback"
+    )
+    message: str = Field(..., description="Feedback message")
+    details: Optional[str] = Field(None, description="Additional details")
+    location: Optional[str] = Field(None, description="Reference to specific node/edge")
 
 
-class ComputationStep(TypedDict, total=False):
+class ComputationStep(BaseModel):
     """A step in the computation (for detailed feedback)."""
-    step_number: int
-    description: str
-    state: dict  # Current state at this step
-    highlight_nodes: list[str]
-    highlight_edges: list[EdgeSchema]
+    step_number: int = Field(..., description="Step number")
+    description: str = Field(..., description="Description of this step")
+    state: Optional[dict[str, Any]] = Field(None, description="Current state at this step")
+    highlight_nodes: Optional[list[str]] = Field(None, description="Nodes to highlight")
+    highlight_edges: Optional[list[Edge]] = Field(None, description="Edges to highlight")
 
 
 # =============================================================================
 # MAIN EVALUATION RESULT SCHEMA
 # =============================================================================
 
-class EvaluationDetails(TypedDict, total=False):
+class EvaluationDetails(BaseModel):
     """
     Detailed evaluation results.
     
     Contains type-specific results and feedback information.
     """
     # Type-specific results
-    path_result: PathResult
-    connectivity_result: ConnectivityResult
-    bipartite_result: BipartiteResult
-    graph_match_result: GraphMatchResult
-    eulerian_result: EulerianResult
-    hamiltonian_result: HamiltonianResult
-    cycle_result: CycleResult
-    tree_result: TreeResult
-    coloring_result: ColoringResult
-    flow_result: FlowResult
-    matching_result: MatchingResult
-    component_result: ComponentResult
-    structure_result: StructureResult
-    ordering_result: OrderingResult
+    path_result: Optional[PathResult] = None
+    connectivity_result: Optional[ConnectivityResult] = None
+    bipartite_result: Optional[BipartiteResult] = None
+    graph_match_result: Optional[GraphMatchResult] = None
+    eulerian_result: Optional[EulerianResult] = None
+    hamiltonian_result: Optional[HamiltonianResult] = None
+    cycle_result: Optional[CycleResult] = None
+    tree_result: Optional[TreeResult] = None
+    coloring_result: Optional[ColoringResult] = None
+    flow_result: Optional[FlowResult] = None
+    matching_result: Optional[MatchingResult] = None
+    component_result: Optional[ComponentResult] = None
+    structure_result: Optional[StructureResult] = None
+    ordering_result: Optional[OrderingResult] = None
     
     # Computed values (for display/verification)
-    computed_answer: dict
-    expected_answer: dict
+    computed_answer: Optional[dict[str, Any]] = Field(None, description="The computed correct answer")
+    expected_answer: Optional[dict[str, Any]] = Field(None, description="The expected answer")
     
     # Feedback
-    feedback_items: list[FeedbackItem]
-    computation_steps: list[ComputationStep]
-    hints: list[str]
+    feedback_items: list[FeedbackItem] = Field(default_factory=list, description="Feedback items")
+    computation_steps: list[ComputationStep] = Field(default_factory=list, description="Step-by-step computation")
+    hints: list[str] = Field(default_factory=list, description="Hints for incorrect answers")
     
     # Scoring
-    partial_score: float  # 0.0 to 1.0
-    scoring_breakdown: dict[str, float]
+    partial_score: Optional[float] = Field(None, ge=0.0, le=1.0, description="Partial credit score")
+    scoring_breakdown: Optional[dict[str, float]] = Field(None, description="Breakdown of partial scoring")
 
 
 # =============================================================================
 # VISUALIZATION DATA
 # =============================================================================
 
-class VisualizationData(TypedDict, total=False):
+class VisualizationData(BaseModel):
     """
     Data for visualizing the result in the UI.
-    
-    Attributes:
-        highlight_nodes: Nodes to highlight (e.g., path nodes)
-        highlight_edges: Edges to highlight
-        node_colors: Color assignments for nodes
-        edge_colors: Color assignments for edges
-        node_labels: Additional labels to show on nodes
-        edge_labels: Additional labels to show on edges
-        animation_steps: Steps for animated visualization
     """
-    highlight_nodes: list[str]
-    highlight_edges: list[EdgeSchema]
-    node_colors: dict[str, str]
-    edge_colors: dict[str, str]
-    node_labels: dict[str, str]
-    edge_labels: dict[str, str]
-    animation_steps: list[dict]
-    partitions: list[list[str]]  # For bipartite visualization
-    tree_layout: dict[str, tuple[float, float]]  # Computed tree positions
+    highlight_nodes: list[str] = Field(default_factory=list, description="Nodes to highlight")
+    highlight_edges: list[Edge] = Field(default_factory=list, description="Edges to highlight")
+    node_colors: dict[str, str] = Field(default_factory=dict, description="Color assignments for nodes")
+    edge_colors: dict[str, str] = Field(default_factory=dict, description="Color assignments for edges")
+    node_labels: dict[str, str] = Field(default_factory=dict, description="Additional labels for nodes")
+    edge_labels: dict[str, str] = Field(default_factory=dict, description="Additional labels for edges")
+    animation_steps: list[dict[str, Any]] = Field(default_factory=list, description="Animation steps")
+    partitions: Optional[list[list[str]]] = Field(None, description="For bipartite visualization")
+    tree_layout: Optional[dict[str, tuple[float, float]]] = Field(None, description="Computed tree positions")
 
 
 # =============================================================================
 # COMPLETE RESULT (extends lf_toolkit Result)
 # =============================================================================
 
-class ExtendedResult(TypedDict, total=False):
+class EvaluationResult(BaseModel):
     """
-    Extended result schema for graph evaluation.
+    Complete evaluation result schema.
     
-    This extends the base Result from lf_toolkit with
-    graph-specific evaluation details.
-    
-    Note: The actual return should use lf_toolkit.evaluation.Result,
-    with these additional fields in a custom property.
+    This wraps the lf_toolkit Result with graph-specific details.
     """
-    is_correct: bool
-    feedback: str
+    is_correct: bool = Field(..., description="Whether the answer is correct")
+    feedback: Optional[str] = Field(None, description="Main feedback message")
     
     # Extended graph evaluation data
-    evaluation_details: EvaluationDetails
-    visualization: VisualizationData
+    evaluation_details: Optional[EvaluationDetails] = Field(
+        None, description="Detailed evaluation results"
+    )
+    visualization: Optional[VisualizationData] = Field(
+        None, description="Visualization data for the UI"
+    )
     
     # Warnings and errors
-    warnings: list[str]
-    errors: list[str]
+    warnings: list[str] = Field(default_factory=list, description="Warning messages")
+    errors: list[str] = Field(default_factory=list, description="Error messages")
