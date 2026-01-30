@@ -5,7 +5,7 @@ from typing import Any, Optional
 from lf_toolkit.evaluation import Result, Params
 from pydantic import ValidationError
 
-from evaluation_function.algorithms import bipartite_info, connectivity_info, shortest_path_info
+from evaluation_function.algorithms import bipartite_info, connectivity_info, cycle_info, shortest_path_info
 from evaluation_function.algorithms.shortest_path import NegativeCycleError
 from evaluation_function.schemas import Answer, EvaluationParams, Graph, Response
 
@@ -132,6 +132,120 @@ def evaluation_function(
             fb += f" partitions={details.partitions}"
         if want_odd and details.odd_cycle is not None:
             fb += f" odd_cycle={details.odd_cycle}"
+        return _ok() if is_correct else _err(fb)
+
+    if eval_type in {"cycle_detection", "find_all_cycles"}:
+        c_params = p.cycle_detection
+        find_all = True if eval_type == "find_all_cycles" else bool(c_params.find_all) if c_params else False
+        min_len = int(c_params.min_length) if c_params else 3
+        max_len = c_params.max_length if c_params else None
+        max_nodes = int(c_params.max_nodes) if c_params else 15
+        max_cycles = int(c_params.max_cycles) if c_params else 1000
+        want_cycles = bool(c_params.return_cycles) if c_params else True
+
+        expected = ans.has_cycle
+        if expected is None:
+            expected = cycle_info(
+                expected_graph,
+                find_all=False,
+                return_cycles=False,
+                return_girth=False,
+                return_shortest_cycle=False,
+            ).has_cycle
+
+        student_value = resp.has_cycle
+        if student_value is None:
+            student_value = cycle_info(
+                student_graph,
+                find_all=False,
+                return_cycles=False,
+                return_girth=False,
+                return_shortest_cycle=False,
+            ).has_cycle
+
+        details = cycle_info(
+            student_graph,
+            find_all=find_all,
+            min_length=min_len,
+            max_length=max_len,
+            max_nodes=max_nodes,
+            max_cycles=max_cycles,
+            return_cycles=want_cycles,
+            return_girth=False,
+            return_shortest_cycle=False,
+        )
+
+        is_correct = bool(student_value) == bool(expected)
+        fb = f"Cycle detection: expected={expected}, got={student_value}."
+        if want_cycles and details.cycles is not None:
+            fb += f" cycles_found={len(details.cycles)}"
+        return _ok() if is_correct else _err(fb)
+
+    if eval_type == "shortest_cycle":
+        c_params = p.cycle_detection
+        min_len = int(c_params.min_length) if c_params else 3
+        max_len = c_params.max_length if c_params else None
+
+        expected_girth = ans.girth
+        if expected_girth is None:
+            expected_girth = cycle_info(
+                expected_graph,
+                find_all=False,
+                min_length=min_len,
+                max_length=max_len,
+                return_cycles=False,
+                return_girth=True,
+                return_shortest_cycle=False,
+            ).girth
+
+        student_girth = resp.girth
+        if student_girth is None:
+            student_girth = cycle_info(
+                student_graph,
+                find_all=False,
+                min_length=min_len,
+                max_length=max_len,
+                return_cycles=False,
+                return_girth=True,
+                return_shortest_cycle=False,
+            ).girth
+
+        # Treat acyclic graphs as girth=None
+        is_correct = student_girth == expected_girth
+        fb = f"Shortest cycle (girth): expected={expected_girth}, got={student_girth}."
+        return _ok() if is_correct else _err(fb)
+
+    if eval_type == "negative_cycle":
+        n_params = p.negative_cycle
+        want_cycle = bool(n_params.return_cycle) if n_params else True
+        source_node = n_params.source_node if n_params else None
+
+        expected_neg = cycle_info(
+            expected_graph,
+            detect_negative_cycle=True,
+            return_negative_cycle=False,
+            negative_cycle_source_node=source_node,
+            return_cycles=False,
+            return_girth=False,
+            return_shortest_cycle=False,
+        ).has_negative_cycle
+        expected_neg_bool = bool(expected_neg)
+
+        details = cycle_info(
+            student_graph,
+            detect_negative_cycle=True,
+            return_negative_cycle=want_cycle,
+            negative_cycle_source_node=source_node,
+            return_cycles=False,
+            return_girth=False,
+            return_shortest_cycle=False,
+        )
+        student_neg_bool = bool(details.has_negative_cycle)
+
+        is_correct = student_neg_bool == expected_neg_bool
+        fb = f"Negative cycle: expected={expected_neg_bool}, got={student_neg_bool}."
+        if want_cycle and details.negative_cycle is not None:
+            fb += f" negative_cycle={details.negative_cycle}"
         return _ok() if is_correct else _err(fb)
 
     if eval_type == "shortest_path":
