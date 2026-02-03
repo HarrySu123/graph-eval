@@ -14,12 +14,8 @@ All algorithms work with the Graph schema defined in schemas.graph.
 from typing import Optional
 from collections import defaultdict
 
-import sys
-import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from schemas.graph import Graph, Node, Edge
-from schemas.result import ColoringResult
+from ..schemas.graph import Graph, Node, Edge
+from ..schemas.result import ColoringResult
 from .utils import build_adjacency_list
 
 
