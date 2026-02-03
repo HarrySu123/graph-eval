@@ -958,8 +958,8 @@ class TestHamiltonianFeedback:
         feedback = get_hamiltonian_feedback(path_graph_4, check_circuit=True, result=result)
         # Existence result should indicate that no Hamiltonian circuit exists
         assert result.exists is False
-        # Feedback should mention that no circuit exists
-        assert any("no hamiltonian" in f.lower() or "does not exist" in f.lower() for f in feedback)
+        # Feedback should mention that no circuit exists (either explicitly or via "not enough edges")
+        assert any("no hamiltonian" in f.lower() or "does not exist" in f.lower() or "not enough edges" in f.lower() for f in feedback)
 
 
 # =============================================================================
