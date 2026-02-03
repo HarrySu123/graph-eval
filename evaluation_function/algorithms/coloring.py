@@ -569,7 +569,41 @@ def color_graph(
             # Fall back to DSatur for large graphs
             coloring = dsatur_coloring(graph)
         else:
-            coloring = dsatur_coloring(graph)
+            # Use backtracking to find an optimal coloring with chi colors
+            adj = build_adjacency_list(graph)
+            node_ids = [node.id for node in graph.nodes]
+            node_index = {node_id: i for i, node_id in enumerate(node_ids)}
+            n = len(node_ids)
+            colors = [-1] * n
+            
+            def is_safe(node_idx: int, color: int) -> bool:
+                """Check if assigning color to node is safe."""
+                node_id = node_ids[node_idx]
+                for neighbor in adj.get(node_id, set()):
+                    neighbor_idx = node_index[neighbor]
+                    if colors[neighbor_idx] == color:
+                        return False
+                return True
+            
+            def backtrack(node_idx: int) -> bool:
+                """Try to color nodes starting from node_idx."""
+                if node_idx == n:
+                    return True
+                
+                for color in range(chi):
+                    if is_safe(node_idx, color):
+                        colors[node_idx] = color
+                        if backtrack(node_idx + 1):
+                            return True
+                        colors[node_idx] = -1
+                
+                return False
+            
+            if backtrack(0):
+                coloring = {node_ids[i]: colors[i] for i in range(n)}
+            else:
+                # Should not happen if chi is correct, but fallback to DSatur
+                coloring = dsatur_coloring(graph)
     else:
         raise ValueError(f"Unknown algorithm: {algorithm}")
     

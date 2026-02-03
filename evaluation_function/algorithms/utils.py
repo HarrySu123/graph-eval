@@ -22,10 +22,6 @@ from ..schemas.graph import Graph
 # =============================================================================
 
 class UnionFind:
-# UNION-FIND DATA STRUCTURE
-# =============================================================================
-
-class UnionFind:
     """
     Union-Find (Disjoint Set Union) data structure with path compression
     and union by rank for efficient component tracking.
