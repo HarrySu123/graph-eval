@@ -20,7 +20,7 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from schemas.graph import Graph, Node, Edge
+from schemas.graph import Graph
 from schemas.result import EulerianResult, HamiltonianResult
 from .utils import (
     build_adjacency_list,
