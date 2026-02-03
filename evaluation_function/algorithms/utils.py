@@ -14,14 +14,14 @@ Contents:
 from typing import Optional
 from collections import defaultdict, deque
 
-import sys
-import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from schemas.graph import Graph
+from ..schemas.graph import Graph
 
 
 # =============================================================================
+# UNION-FIND DATA STRUCTURE
+# =============================================================================
+
+class UnionFind:
 # UNION-FIND DATA STRUCTURE
 # =============================================================================
 
