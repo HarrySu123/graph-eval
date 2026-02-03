@@ -13,7 +13,6 @@ All algorithms work with the Graph schema defined in schemas.graph.
 
 from typing import Optional
 from collections import defaultdict
-import heapq
 
 import sys
 import os
@@ -21,36 +20,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from schemas.graph import Graph, Node, Edge
 from schemas.result import ColoringResult
-
-
-# =============================================================================
-# HELPER FUNCTIONS
-# =============================================================================
-
-def build_adjacency_list(graph: Graph) -> dict[str, set[str]]:
-    """
-    Build an adjacency list representation from a Graph object.
-    
-    Args:
-        graph: The Graph object
-        
-    Returns:
-        Dictionary mapping node IDs to sets of neighbor node IDs
-    """
-    adj: dict[str, set[str]] = defaultdict(set)
-    
-    # Initialize all nodes (even isolated ones)
-    for node in graph.nodes:
-        if node.id not in adj:
-            adj[node.id] = set()
-    
-    # Add edges
-    for edge in graph.edges:
-        adj[edge.source].add(edge.target)
-        if not graph.directed:
-            adj[edge.target].add(edge.source)
-    
-    return dict(adj)
+from .utils import build_adjacency_list
 
 
 def build_line_graph_adjacency(graph: Graph) -> tuple[dict[str, set[str]], dict[str, tuple[str, str]]]:

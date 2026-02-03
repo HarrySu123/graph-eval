@@ -4,10 +4,34 @@ Graph Theory Algorithms
 This package contains implementations of various graph algorithms.
 
 Modules:
+- utils: Common helper functions and data structures
 - coloring: Graph coloring algorithms (greedy, DSatur, chromatic number)
 - mst: Minimum spanning tree algorithms (Kruskal, Prim, verification)
 - path: Eulerian and Hamiltonian path/circuit algorithms
 """
+
+from .utils import (
+    # Union-Find data structure
+    UnionFind,
+    
+    # Adjacency builders
+    build_adjacency_list,
+    build_adjacency_list_weighted,
+    build_adjacency_multiset,
+    build_edge_set,
+    
+    # Degree calculations
+    get_degree,
+    get_in_out_degree,
+    
+    # Connectivity
+    is_connected,
+    is_weakly_connected,
+    count_components,
+    
+    # Edge utilities
+    get_edge_weight,
+)
 
 from .coloring import (
     # Verification
@@ -25,15 +49,11 @@ from .coloring import (
     compute_chromatic_number,
     compute_chromatic_index,
     
-    # Helper functions
-    build_adjacency_list,
+    # Helper functions (coloring-specific)
     build_line_graph_adjacency,
 )
 
 from .mst import (
-    # Union-Find data structure
-    UnionFind,
-    
     # MST algorithms
     kruskal_mst,
     prim_mst,
@@ -55,10 +75,8 @@ from .mst import (
     find_mst,
     evaluate_mst_submission,
     
-    # Helper functions
-    build_adjacency_list_weighted,
+    # MST-specific helper (wrapper)
     is_graph_connected,
-    count_components,
 )
 
 from .path import (
@@ -91,14 +109,33 @@ from .path import (
     get_eulerian_feedback,
     get_hamiltonian_feedback,
     
-    # Helper functions (path module)
-    build_adjacency_multiset,
-    get_in_out_degree,
+    # Path-specific wrappers
     is_connected_undirected,
     is_weakly_connected_directed,
 )
 
 __all__ = [
+    # Utils - Union-Find
+    "UnionFind",
+    
+    # Utils - Adjacency builders
+    "build_adjacency_list",
+    "build_adjacency_list_weighted",
+    "build_adjacency_multiset",
+    "build_edge_set",
+    
+    # Utils - Degree calculations
+    "get_degree",
+    "get_in_out_degree",
+    
+    # Utils - Connectivity
+    "is_connected",
+    "is_weakly_connected",
+    "count_components",
+    
+    # Utils - Edge utilities
+    "get_edge_weight",
+    
     # Coloring - Verification
     "verify_vertex_coloring",
     "verify_edge_coloring",
@@ -115,11 +152,7 @@ __all__ = [
     "compute_chromatic_index",
     
     # Coloring - Helper functions
-    "build_adjacency_list",
     "build_line_graph_adjacency",
-    
-    # MST - Union-Find
-    "UnionFind",
     
     # MST algorithms
     "kruskal_mst",
@@ -142,10 +175,8 @@ __all__ = [
     "find_mst",
     "evaluate_mst_submission",
     
-    # MST - Helper functions
-    "build_adjacency_list_weighted",
+    # MST - Wrapper
     "is_graph_connected",
-    "count_components",
     
     # Path - Eulerian existence checks
     "check_eulerian_undirected",
@@ -176,9 +207,7 @@ __all__ = [
     "get_eulerian_feedback",
     "get_hamiltonian_feedback",
     
-    # Path - Helper functions
-    "build_adjacency_multiset",
-    "get_in_out_degree",
+    # Path - Wrappers
     "is_connected_undirected",
     "is_weakly_connected_directed",
 ]

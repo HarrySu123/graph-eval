@@ -21,173 +21,19 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from schemas.graph import Graph, Node, Edge
 from schemas.result import TreeResult, VisualizationData
+from .utils import (
+    UnionFind,
+    build_adjacency_list_weighted,
+    build_edge_set,
+    get_edge_weight,
+    is_connected,
+    count_components,
+)
 
 
 # =============================================================================
-# UNION-FIND DATA STRUCTURE
+# GRAPH CONNECTIVITY (MST-specific wrapper)
 # =============================================================================
-
-class UnionFind:
-    """
-    Union-Find (Disjoint Set Union) data structure with path compression
-    and union by rank for efficient MST computation.
-    """
-    
-    def __init__(self, nodes: list[str]):
-        """
-        Initialize Union-Find with given nodes.
-        
-        Args:
-            nodes: List of node IDs
-        """
-        self.parent: dict[str, str] = {node: node for node in nodes}
-        self.rank: dict[str, int] = {node: 0 for node in nodes}
-    
-    def find(self, x: str) -> str:
-        """
-        Find the root/representative of the set containing x.
-        Uses path compression for efficiency.
-        
-        Args:
-            x: Node ID to find root for
-            
-        Returns:
-            Root node ID of the set containing x
-        """
-        if self.parent[x] != x:
-            self.parent[x] = self.find(self.parent[x])  # Path compression
-        return self.parent[x]
-    
-    def union(self, x: str, y: str) -> bool:
-        """
-        Union the sets containing x and y.
-        Uses union by rank for efficiency.
-        
-        Args:
-            x: First node ID
-            y: Second node ID
-            
-        Returns:
-            True if union was performed (nodes were in different sets),
-            False if nodes were already in the same set
-        """
-        root_x = self.find(x)
-        root_y = self.find(y)
-        
-        if root_x == root_y:
-            return False  # Already in same set
-        
-        # Union by rank
-        if self.rank[root_x] < self.rank[root_y]:
-            self.parent[root_x] = root_y
-        elif self.rank[root_x] > self.rank[root_y]:
-            self.parent[root_y] = root_x
-        else:
-            self.parent[root_y] = root_x
-            self.rank[root_x] += 1
-        
-        return True
-    
-    def connected(self, x: str, y: str) -> bool:
-        """
-        Check if two nodes are in the same set.
-        
-        Args:
-            x: First node ID
-            y: Second node ID
-            
-        Returns:
-            True if nodes are in the same set, False otherwise
-        """
-        return self.find(x) == self.find(y)
-    
-    def get_components(self) -> list[set[str]]:
-        """
-        Get all connected components.
-        
-        Returns:
-            List of sets, each containing node IDs in one component
-        """
-        components: dict[str, set[str]] = defaultdict(set)
-        for node in self.parent:
-            root = self.find(node)
-            components[root].add(node)
-        return list(components.values())
-
-
-# =============================================================================
-# HELPER FUNCTIONS
-# =============================================================================
-
-def build_adjacency_list_weighted(graph: Graph) -> dict[str, list[tuple[str, float]]]:
-    """
-    Build a weighted adjacency list representation from a Graph object.
-    
-    Args:
-        graph: The Graph object
-        
-    Returns:
-        Dictionary mapping node IDs to lists of (neighbor_id, weight) tuples
-    """
-    adj: dict[str, list[tuple[str, float]]] = defaultdict(list)
-    
-    # Initialize all nodes (even isolated ones)
-    for node in graph.nodes:
-        if node.id not in adj:
-            adj[node.id] = []
-    
-    # Add edges
-    for edge in graph.edges:
-        weight = edge.weight if edge.weight is not None else 1.0
-        adj[edge.source].append((edge.target, weight))
-        if not graph.directed:
-            adj[edge.target].append((edge.source, weight))
-    
-    return dict(adj)
-
-
-def build_edge_set(graph: Graph) -> set[tuple[str, str]]:
-    """
-    Build a set of edge tuples (normalized for undirected graphs).
-    
-    Args:
-        graph: The Graph object
-        
-    Returns:
-        Set of (source, target) tuples, normalized so source <= target for undirected
-    """
-    edges = set()
-    for edge in graph.edges:
-        if graph.directed:
-            edges.add((edge.source, edge.target))
-        else:
-            # Normalize undirected edges
-            edges.add(tuple(sorted([edge.source, edge.target])))
-    return edges
-
-
-def get_edge_weight(graph: Graph, source: str, target: str) -> Optional[float]:
-    """
-    Get the weight of an edge between two nodes.
-    
-    Args:
-        graph: The Graph object
-        source: Source node ID
-        target: Target node ID
-        
-    Returns:
-        Edge weight, or None if edge doesn't exist
-    """
-    for edge in graph.edges:
-        if graph.directed:
-            if edge.source == source and edge.target == target:
-                return edge.weight if edge.weight is not None else 1.0
-        else:
-            if (edge.source == source and edge.target == target) or \
-               (edge.source == target and edge.target == source):
-                return edge.weight if edge.weight is not None else 1.0
-    return None
-
 
 def is_graph_connected(graph: Graph) -> bool:
     """
@@ -199,47 +45,7 @@ def is_graph_connected(graph: Graph) -> bool:
     Returns:
         True if graph is connected, False otherwise
     """
-    if not graph.nodes:
-        return True
-    
-    adj = build_adjacency_list_weighted(graph)
-    visited = set()
-    start = graph.nodes[0].id
-    
-    # BFS to check connectivity
-    queue = [start]
-    visited.add(start)
-    
-    while queue:
-        current = queue.pop(0)
-        for neighbor, _ in adj.get(current, []):
-            if neighbor not in visited:
-                visited.add(neighbor)
-                queue.append(neighbor)
-    
-    return len(visited) == len(graph.nodes)
-
-
-def count_components(graph: Graph) -> int:
-    """
-    Count the number of connected components in the graph.
-    
-    Args:
-        graph: The Graph object
-        
-    Returns:
-        Number of connected components
-    """
-    if not graph.nodes:
-        return 0
-    
-    node_ids = [node.id for node in graph.nodes]
-    uf = UnionFind(node_ids)
-    
-    for edge in graph.edges:
-        uf.union(edge.source, edge.target)
-    
-    return len(uf.get_components())
+    return is_connected(graph, include_isolated=True)
 
 
 # =============================================================================

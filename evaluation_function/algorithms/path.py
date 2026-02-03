@@ -22,94 +22,18 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from schemas.graph import Graph, Node, Edge
 from schemas.result import EulerianResult, HamiltonianResult
+from .utils import (
+    build_adjacency_list,
+    build_adjacency_multiset,
+    get_in_out_degree,
+    is_connected,
+    is_weakly_connected,
+)
 
 
 # =============================================================================
-# HELPER FUNCTIONS
+# CONNECTIVITY WRAPPERS (Path-specific behavior)
 # =============================================================================
-
-def build_adjacency_list(graph: Graph) -> dict[str, set[str]]:
-    """
-    Build an adjacency list representation from a Graph object.
-    
-    Args:
-        graph: The Graph object
-        
-    Returns:
-        Dictionary mapping node IDs to sets of neighbor node IDs
-    """
-    adj: dict[str, set[str]] = defaultdict(set)
-    
-    # Initialize all nodes (even isolated ones)
-    for node in graph.nodes:
-        if node.id not in adj:
-            adj[node.id] = set()
-    
-    # Add edges
-    for edge in graph.edges:
-        adj[edge.source].add(edge.target)
-        if not graph.directed:
-            adj[edge.target].add(edge.source)
-    
-    return dict(adj)
-
-
-def build_adjacency_multiset(graph: Graph) -> dict[str, dict[str, int]]:
-    """
-    Build an adjacency multiset for multigraph support (counting edges).
-    
-    Args:
-        graph: The Graph object
-        
-    Returns:
-        Dictionary mapping node IDs to dictionaries of neighbor counts
-    """
-    adj: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
-    
-    # Initialize all nodes
-    for node in graph.nodes:
-        if node.id not in adj:
-            adj[node.id] = defaultdict(int)
-    
-    # Add edges (with multiplicity)
-    for edge in graph.edges:
-        adj[edge.source][edge.target] += 1
-        if not graph.directed:
-            adj[edge.target][edge.source] += 1
-    
-    return {k: dict(v) for k, v in adj.items()}
-
-
-def get_degree(adj: dict[str, set[str]], node: str) -> int:
-    """Get the degree of a node in an undirected graph."""
-    return len(adj.get(node, set()))
-
-
-def get_in_out_degree(graph: Graph) -> tuple[dict[str, int], dict[str, int]]:
-    """
-    Calculate in-degree and out-degree for each node in a directed graph.
-    
-    Args:
-        graph: The Graph object (should be directed)
-        
-    Returns:
-        Tuple of (in_degree dict, out_degree dict)
-    """
-    in_degree: dict[str, int] = defaultdict(int)
-    out_degree: dict[str, int] = defaultdict(int)
-    
-    # Initialize all nodes
-    for node in graph.nodes:
-        in_degree[node.id] = 0
-        out_degree[node.id] = 0
-    
-    # Count degrees
-    for edge in graph.edges:
-        out_degree[edge.source] += 1
-        in_degree[edge.target] += 1
-    
-    return dict(in_degree), dict(out_degree)
-
 
 def is_connected_undirected(graph: Graph) -> bool:
     """
@@ -122,40 +46,7 @@ def is_connected_undirected(graph: Graph) -> bool:
     Returns:
         True if all non-isolated vertices are connected
     """
-    if not graph.nodes:
-        return True
-    
-    adj = build_adjacency_list(graph)
-    
-    # Find first non-isolated vertex
-    start = None
-    for node_id in adj:
-        if adj[node_id]:
-            start = node_id
-            break
-    
-    # If no edges, graph is trivially connected
-    if start is None:
-        return True
-    
-    # BFS from start
-    visited = set()
-    queue = deque([start])
-    visited.add(start)
-    
-    while queue:
-        node = queue.popleft()
-        for neighbor in adj[node]:
-            if neighbor not in visited:
-                visited.add(neighbor)
-                queue.append(neighbor)
-    
-    # Check all non-isolated vertices are visited
-    for node_id in adj:
-        if adj[node_id] and node_id not in visited:
-            return False
-    
-    return True
+    return is_connected(graph, include_isolated=False)
 
 
 def is_weakly_connected_directed(graph: Graph) -> bool:
@@ -169,44 +60,12 @@ def is_weakly_connected_directed(graph: Graph) -> bool:
     Returns:
         True if weakly connected
     """
-    if not graph.nodes:
-        return True
-    
-    # Build undirected version
-    adj: dict[str, set[str]] = defaultdict(set)
-    for node in graph.nodes:
-        adj[node.id] = set()
-    for edge in graph.edges:
-        adj[edge.source].add(edge.target)
-        adj[edge.target].add(edge.source)
-    
-    # Find first non-isolated vertex
-    start = None
-    for node_id in adj:
-        if adj[node_id]:
-            start = node_id
-            break
-    
-    if start is None:
-        return True
-    
-    # BFS
-    visited = set()
-    queue = deque([start])
-    visited.add(start)
-    
-    while queue:
-        node = queue.popleft()
-        for neighbor in adj[node]:
-            if neighbor not in visited:
-                visited.add(neighbor)
-                queue.append(neighbor)
-    
-    for node_id in adj:
-        if adj[node_id] and node_id not in visited:
-            return False
-    
-    return True
+    return is_weakly_connected(graph)
+
+
+def get_degree(adj: dict[str, set[str]], node: str) -> int:
+    """Get the degree of a node in an undirected graph."""
+    return len(adj.get(node, set()))
 
 
 # =============================================================================
